@@ -1,4 +1,4 @@
-# Developing BIIGLE
+# Developing BIIGLE!
 
 To develop BIIGLE on your local machine you can use Docker containers. This way you don't need to install any of the requirements such as Python or special PHP extensions and keep your development environment clearly separated from your regular system.
 
