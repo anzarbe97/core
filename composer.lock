@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "b30e81aa7e42f09b8459380176fff925",
+    "content-hash": "0f551f5bd345ca3e0525a948377d56d8",
     "packages": [
         {
             "name": "aws/aws-crt-php",
@@ -546,6 +546,56 @@
             "time": "2024-01-09T15:51:56+00:00"
         },
         {
+            "name": "biigle/ifdo",
+            "version": "v0.3.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/biigle/ifdo.git",
+                "reference": "d168f144264021e3bfc80c5d15a9b7bd47c72abd"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/biigle/ifdo/zipball/d168f144264021e3bfc80c5d15a9b7bd47c72abd",
+                "reference": "d168f144264021e3bfc80c5d15a9b7bd47c72abd",
+                "shasum": ""
+            },
+            "require": {
+                "justinrainbow/json-schema": "^5.2",
+                "php": "^8.1"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "^10.0 || ^11.0"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Biigle\\Ifdo\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "GPL-3.0"
+            ],
+            "authors": [
+                {
+                    "name": "Christoph Bach",
+                    "email": "bach@intab.pro",
+                    "role": "Developer"
+                }
+            ],
+            "description": "iFDO Parser Package to parse and validate the iFDO JSON Schema",
+            "homepage": "https://github.com/biigle/ifdo-parser",
+            "keywords": [
+                "biigle",
+                "ifdo-parser"
+            ],
+            "support": {
+                "issues": "https://github.com/biigle/ifdo/issues",
+                "source": "https://github.com/biigle/ifdo/tree/v0.3.0"
+            },
+            "time": "2024-04-02T14:12:51+00:00"
+        },
+        {
             "name": "biigle/kpis",
             "version": "dev-main",
             "source": {
@@ -949,6 +999,59 @@
                 "source": "https://github.com/biigle/maia"
             },
             "time": "2024-01-31T10:02:13+00:00"
+        },
+        {
+            "name": "biigle/metadata-ifdo",
+            "version": "dev-main",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/biigle/metadata-ifdo.git",
+                "reference": "068109ef302d6bf043119240ac3a9f913039b675"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/biigle/metadata-ifdo/zipball/068109ef302d6bf043119240ac3a9f913039b675",
+                "reference": "068109ef302d6bf043119240ac3a9f913039b675",
+                "shasum": ""
+            },
+            "require": {
+                "biigle/ifdo": "^0.3 || ^1.0"
+            },
+            "default-branch": true,
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "Biigle\\Modules\\MetadataIfdo\\MetadataIfdoServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Biigle\\Modules\\MetadataIfdo\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "GPL-3.0-only"
+            ],
+            "authors": [
+                {
+                    "name": "Martin Zurowietz",
+                    "email": "m.zurowietz@uni-bielefeld.de"
+                }
+            ],
+            "description": "BIIGLE module for iFDO metadata.",
+            "homepage": "https://biigle.de",
+            "keywords": [
+                "biigle",
+                "biigle-module"
+            ],
+            "support": {
+                "issues": "https://github.com/biigle/metadata-ifdo/issues",
+                "source": "https://github.com/biigle/metadata-ifdo"
+            },
+            "time": "2024-04-02T14:40:28+00:00"
         },
         {
             "name": "biigle/module",
@@ -2965,6 +3068,76 @@
                 "source": "https://github.com/jmikola/geojson/tree/1.1.2"
             },
             "time": "2023-02-20T01:27:38+00:00"
+        },
+        {
+            "name": "justinrainbow/json-schema",
+            "version": "v5.2.13",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/justinrainbow/json-schema.git",
+                "reference": "fbbe7e5d79f618997bc3332a6f49246036c45793"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/justinrainbow/json-schema/zipball/fbbe7e5d79f618997bc3332a6f49246036c45793",
+                "reference": "fbbe7e5d79f618997bc3332a6f49246036c45793",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.3.3"
+            },
+            "require-dev": {
+                "friendsofphp/php-cs-fixer": "~2.2.20||~2.15.1",
+                "json-schema/json-schema-test-suite": "1.2.0",
+                "phpunit/phpunit": "^4.8.35"
+            },
+            "bin": [
+                "bin/validate-json"
+            ],
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "5.0.x-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "JsonSchema\\": "src/JsonSchema/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Bruno Prieto Reis",
+                    "email": "bruno.p.reis@gmail.com"
+                },
+                {
+                    "name": "Justin Rainbow",
+                    "email": "justin.rainbow@gmail.com"
+                },
+                {
+                    "name": "Igor Wiedler",
+                    "email": "igor@wiedler.ch"
+                },
+                {
+                    "name": "Robert Schönthal",
+                    "email": "seroscho@googlemail.com"
+                }
+            ],
+            "description": "A library to validate a json schema.",
+            "homepage": "https://github.com/justinrainbow/json-schema",
+            "keywords": [
+                "json",
+                "schema"
+            ],
+            "support": {
+                "issues": "https://github.com/justinrainbow/json-schema/issues",
+                "source": "https://github.com/justinrainbow/json-schema/tree/v5.2.13"
+            },
+            "time": "2023-09-26T02:20:38+00:00"
         },
         {
             "name": "laravel/framework",
@@ -13727,6 +13900,7 @@
         "biigle/largo": 20,
         "biigle/laserpoints": 20,
         "biigle/maia": 20,
+        "biigle/metadata-ifdo": 20,
         "biigle/module": 20,
         "biigle/newsletter": 20,
         "biigle/reports": 20,
