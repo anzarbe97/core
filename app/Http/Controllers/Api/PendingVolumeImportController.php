@@ -48,7 +48,15 @@ class PendingVolumeImportController extends Controller
             'only_annotation_labels' => $request->input('labels'),
         ]);
 
-        return $request->pendingVolume;
+        if ($this->isAutomatedRequest()) {
+            return $request->pendingVolume;
+        }
+
+        if ($request->pendingVolume->import_file_labels) {
+            return redirect()->route('pending-volume-file-labels', $request->pendingVolume->id);
+        }
+
+        return redirect()->route('pending-volume-label-map', $request->pendingVolume->id);
     }
 
     /**
@@ -86,7 +94,11 @@ class PendingVolumeImportController extends Controller
             'only_file_labels' => $request->input('labels'),
         ]);
 
-        return $request->pendingVolume;
+        if ($this->isAutomatedRequest()) {
+            return $request->pendingVolume;
+        }
+
+        return redirect()->route('pending-volume-label-map', $request->pendingVolume->id);
     }
 
     /**
@@ -121,11 +133,14 @@ class PendingVolumeImportController extends Controller
      */
     public function updateLabelMap(UpdatePendingVolumeLabelMap $request)
     {
-        $request->pendingVolume->update([
-            'label_map' => $request->input('label_map'),
-        ]);
+        $map = array_map('intval', $request->input('label_map'));
+        $request->pendingVolume->update(['label_map' => $map]);
 
-        return $request->pendingVolume;
+        if ($this->isAutomatedRequest()) {
+            return $request->pendingVolume;
+        }
+
+        return redirect()->route('pending-volume-user-map', $request->pendingVolume->id);
     }
 
     /**
@@ -161,11 +176,14 @@ class PendingVolumeImportController extends Controller
      */
     public function updateUserMap(UpdatePendingVolumeUserMap $request)
     {
-        $request->pendingVolume->update([
-            'user_map' => $request->input('user_map'),
-        ]);
+        $map = array_map('intval', $request->input('user_map'));
+        $request->pendingVolume->update(['user_map' => $map]);
 
-        return $request->pendingVolume;
+        if ($this->isAutomatedRequest()) {
+            return $request->pendingVolume;
+        }
+
+        return redirect()->route('pending-volume-finish', $request->pendingVolume->id);
     }
 
     /**
@@ -186,5 +204,12 @@ class PendingVolumeImportController extends Controller
             $request->pendingVolume->update(['importing' => true]);
             Queue::push(new ImportVolumeMetadata($request->pendingVolume));
         });
+
+        if (!$this->isAutomatedRequest()) {
+            return redirect()
+                ->route('volume', $request->pendingVolume->volume_id)
+                ->with('message', 'Metadata import in progress')
+                ->with('messageType', 'success');
+        }
     }
 }

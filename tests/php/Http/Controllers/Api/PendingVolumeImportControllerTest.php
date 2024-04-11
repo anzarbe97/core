@@ -88,6 +88,72 @@ class PendingVolumeImportControllerTest extends ApiTestCase
         $this->assertEquals([123], $pv->only_annotation_labels);
     }
 
+    public function testUpdateAnnotationLabelsRedirectToSelectFileLabels()
+    {
+        $metadata = new VolumeMetadata;
+        $file = new ImageMetadata('1.jpg');
+        $metadata->addFile($file);
+        $label = new Label(123, 'my label');
+        $user = new User(321, 'joe user');
+        $lau = new LabelAndUser($label, $user);
+        $annotation = new ImageAnnotation(
+            shape: Shape::point(),
+            points: [10, 10],
+            labels: [$lau],
+        );
+        $file->addAnnotation($annotation);
+
+        Cache::store('array')->put('metadata-pending-metadata-mymeta.csv', $metadata);
+
+        $pv = PendingVolume::factory()->create([
+            'project_id' => $this->project()->id,
+            'media_type_id' => MediaType::imageId(),
+            'user_id' => $this->admin()->id,
+            'metadata_file_path' => 'mymeta.csv',
+            'volume_id' => $this->volume()->id,
+            'import_file_labels' => true,
+        ]);
+        $id = $pv->id;
+
+        $this->beAdmin();
+        $this->put("/api/v1/pending-volumes/{$id}/annotation-labels", [
+            'labels' => [123],
+        ])->assertRedirectToRoute('pending-volume-file-labels', $id);
+    }
+
+    public function testUpdateAnnotationLabelsRedirectToLabelMap()
+    {
+        $metadata = new VolumeMetadata;
+        $file = new ImageMetadata('1.jpg');
+        $metadata->addFile($file);
+        $label = new Label(123, 'my label');
+        $user = new User(321, 'joe user');
+        $lau = new LabelAndUser($label, $user);
+        $annotation = new ImageAnnotation(
+            shape: Shape::point(),
+            points: [10, 10],
+            labels: [$lau],
+        );
+        $file->addAnnotation($annotation);
+
+        Cache::store('array')->put('metadata-pending-metadata-mymeta.csv', $metadata);
+
+        $pv = PendingVolume::factory()->create([
+            'project_id' => $this->project()->id,
+            'media_type_id' => MediaType::imageId(),
+            'user_id' => $this->admin()->id,
+            'metadata_file_path' => 'mymeta.csv',
+            'volume_id' => $this->volume()->id,
+            'import_file_labels' => false,
+        ]);
+        $id = $pv->id;
+
+        $this->beAdmin();
+        $this->put("/api/v1/pending-volumes/{$id}/annotation-labels", [
+            'labels' => [123],
+        ])->assertRedirectToRoute('pending-volume-label-map', $id);
+    }
+
     public function testUpdateFileLabels()
     {
         $metadata = new VolumeMetadata;
@@ -146,6 +212,33 @@ class PendingVolumeImportControllerTest extends ApiTestCase
         $this->assertEquals([123], $pv->only_file_labels);
     }
 
+    public function testUpdateFileLabelsRedirectToLabelMap()
+    {
+        $metadata = new VolumeMetadata;
+        $file = new ImageMetadata('1.jpg');
+        $metadata->addFile($file);
+        $label = new Label(123, 'my label');
+        $user = new User(321, 'joe user');
+        $lau = new LabelAndUser($label, $user);
+        $file->addFileLabel($lau);
+
+        Cache::store('array')->put('metadata-pending-metadata-mymeta.csv', $metadata);
+
+        $pv = PendingVolume::factory()->create([
+            'project_id' => $this->project()->id,
+            'media_type_id' => MediaType::imageId(),
+            'user_id' => $this->admin()->id,
+            'metadata_file_path' => 'mymeta.csv',
+            'volume_id' => $this->volume()->id,
+        ]);
+        $id = $pv->id;
+
+        $this->beAdmin();
+        $this->put("/api/v1/pending-volumes/{$id}/file-labels", [
+            'labels' => [123],
+        ])->assertRedirectToRoute('pending-volume-label-map', $id);
+    }
+
     public function testUpdateLabelMap()
     {
         $metadata = new VolumeMetadata;
@@ -189,6 +282,11 @@ class PendingVolumeImportControllerTest extends ApiTestCase
             'label_map' => [],
         ])->assertStatus(422);
 
+        // Map values must be ints.
+        $this->putJson("/api/v1/pending-volumes/{$id}/label-map", [
+            'label_map' => ['abc', 'def'],
+        ])->assertStatus(422);
+
         // No volume attached yet.
         $this->putJson("/api/v1/pending-volumes/{$id}/label-map", [
             'label_map' => [123 => $this->labelRoot()->id],
@@ -207,11 +305,12 @@ class PendingVolumeImportControllerTest extends ApiTestCase
         ])->assertStatus(422);
 
         $this->putJson("/api/v1/pending-volumes/{$id}/label-map", [
-            'label_map' => [123 => $this->labelRoot()->id],
+            'label_map' => [123 => "{$this->labelRoot()->id}"],
         ])->assertSuccessful();
 
         $pv->refresh();
-        $this->assertEquals([123 => $this->labelRoot()->id], $pv->label_map);
+        // Values should be cast to int.
+        $this->assertSame([123 => $this->labelRoot()->id], $pv->label_map);
     }
 
     public function testUpdateLabelMapFileLabel()
@@ -341,6 +440,34 @@ class PendingVolumeImportControllerTest extends ApiTestCase
         ])->assertStatus(422);
     }
 
+    public function testUpdateLabelMapRedirectToUserMap()
+    {
+        $metadata = new VolumeMetadata;
+        $file = new ImageMetadata('1.jpg');
+        $metadata->addFile($file);
+        $label = new Label(123, 'my label');
+        $user = new User(321, 'joe user');
+        $lau = new LabelAndUser($label, $user);
+        $file->addFileLabel($lau);
+
+        Cache::store('array')->put('metadata-pending-metadata-mymeta.csv', $metadata);
+
+        $pv = PendingVolume::factory()->create([
+            'project_id' => $this->project()->id,
+            'media_type_id' => MediaType::imageId(),
+            'user_id' => $this->admin()->id,
+            'metadata_file_path' => 'mymeta.csv',
+            'volume_id' => $this->volume()->id,
+        ]);
+        $id = $pv->id;
+
+        $this->beAdmin();
+
+        $this->put("/api/v1/pending-volumes/{$id}/label-map", [
+            'label_map' => [123 => $this->labelRoot()->id],
+        ])->assertRedirectToRoute('pending-volume-user-map', $id);
+    }
+
     public function testUpdateUserMap()
     {
         $metadata = new VolumeMetadata;
@@ -402,11 +529,11 @@ class PendingVolumeImportControllerTest extends ApiTestCase
         ])->assertStatus(422);
 
         $this->putJson("/api/v1/pending-volumes/{$id}/user-map", [
-            'user_map' => [321 => $this->user()->id],
+            'user_map' => [321 => "{$this->user()->id}"],
         ])->assertSuccessful();
 
         $pv->refresh();
-        $this->assertEquals([321 => $this->user()->id], $pv->user_map);
+        $this->assertSame([321 => $this->user()->id], $pv->user_map);
     }
 
     public function testUpdateUserMapFileLabel()
@@ -438,6 +565,34 @@ class PendingVolumeImportControllerTest extends ApiTestCase
 
         $pv->refresh();
         $this->assertEquals([321 => $this->user()->id], $pv->user_map);
+    }
+
+    public function testUpdateUserMapRedirectToFinish()
+    {
+        $metadata = new VolumeMetadata;
+        $file = new ImageMetadata('1.jpg');
+        $metadata->addFile($file);
+        $label = new Label(123, 'my label');
+        $user = new User(321, 'joe user');
+        $lau = new LabelAndUser($label, $user);
+        $file->addFileLabel($lau);
+
+        Cache::store('array')->put('metadata-pending-metadata-mymeta.csv', $metadata);
+
+        $pv = PendingVolume::factory()->create([
+            'project_id' => $this->project()->id,
+            'media_type_id' => MediaType::imageId(),
+            'user_id' => $this->admin()->id,
+            'metadata_file_path' => 'mymeta.csv',
+            'volume_id' => $this->volume()->id,
+        ]);
+        $id = $pv->id;
+
+        $this->beAdmin();
+
+        $this->put("/api/v1/pending-volumes/{$id}/user-map", [
+            'user_map' => [321 => $this->user()->id],
+        ])->assertRedirectToRoute('pending-volume-finish', $id);
     }
 
     public function testStoreImport()
@@ -690,6 +845,8 @@ class PendingVolumeImportControllerTest extends ApiTestCase
             'metadata_file_path' => 'mymeta.csv',
             'volume_id' => $this->volume()->id,
             'import_file_labels' => true,
+            'label_map' => [123 => $this->labelRoot()->id],
+            'user_map' => [321 => $this->user()->id],
             'importing' => true,
         ]);
         $id = $pv->id;
@@ -972,5 +1129,35 @@ class PendingVolumeImportControllerTest extends ApiTestCase
 
         $this->beAdmin();
         $this->postJson("/api/v1/pending-volumes/{$id}/import")->assertStatus(422);
+    }
+
+    public function testStoreImportRedirectToVolume()
+    {
+        $metadata = new VolumeMetadata;
+        $file = new ImageMetadata('1.jpg');
+        $metadata->addFile($file);
+        $label = new Label(123, 'my label');
+        $user = new User(321, 'joe user');
+        $lau = new LabelAndUser($label, $user);
+        $file->addFileLabel($lau);
+
+        Cache::store('array')->put('metadata-pending-metadata-mymeta.csv', $metadata);
+
+        $pv = PendingVolume::factory()->create([
+            'project_id' => $this->project()->id,
+            'media_type_id' => MediaType::imageId(),
+            'user_id' => $this->admin()->id,
+            'metadata_file_path' => 'mymeta.csv',
+            'volume_id' => $this->volume()->id,
+            'import_file_labels' => true,
+            'label_map' => [123 => $this->labelRoot()->id],
+            'user_map' => [321 => $this->user()->id],
+        ]);
+        $id = $pv->id;
+
+        $this->beAdmin();
+        $this
+            ->post("/api/v1/pending-volumes/{$id}/import")
+            ->assertRedirectToRoute('volume', $this->volume()->id);
     }
 }
