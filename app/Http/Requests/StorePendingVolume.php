@@ -32,16 +32,20 @@ class StorePendingVolume extends FormRequest
 
         $rules = [
             'media_type' => ['required', Rule::in(array_keys(MediaType::INSTANCES))],
+            'metadata_parser' => [
+                'required_with:metadata_file',
+            ],
             // Allow a maximum of 500 MB.
             'metadata_file' => [
+                'required_with:metadata_parser',
                 'file',
                 'max:500000',
             ],
         ];
 
-        if ($this->has('media_type')) {
-            $mimeTypes = ParserFactory::getKnownMimeTypes($this->input('media_type'));
-            $rules['metadata_file'][] = 'mimetypes:'.implode(',', $mimeTypes);
+        $parserClass = $this->input('metadata_parser', false);
+        if ($this->has('media_type') && $parserClass && ParserFactory::has($this->has('media_type'), $parserClass)) {
+            $rules['metadata_file'][] = 'mimetypes:'.implode(',', $parserClass::getKnownMimeTypes());
         }
 
         return $rules;
@@ -70,9 +74,16 @@ class StorePendingVolume extends FormRequest
 
             if ($file = $this->file('metadata_file')) {
                 $type = $this->input('media_type');
-                $parser = ParserFactory::getParserForFile($file, $type);
-                if (is_null($parser)) {
-                    $validator->errors()->add('metadata_file', 'Unknown metadata file format for this media type.');
+                $parserClass = $this->input('metadata_parser');
+
+                if (!ParserFactory::has($type, $parserClass)) {
+                    $validator->errors()->add('metadata_parser', 'Unknown metadata parser for this media type.');
+                    return;
+                }
+
+                $parser = new $parserClass($file);
+                if (!$parser->recognizesFile()) {
+                    $validator->errors()->add('metadata_file', 'Unknown metadata file format.');
                     return;
                 }
 

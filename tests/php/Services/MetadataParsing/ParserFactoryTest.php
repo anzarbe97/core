@@ -7,37 +7,28 @@ use Biigle\Services\MetadataParsing\MetadataParser;
 use Biigle\Services\MetadataParsing\ParserFactory;
 use Biigle\Services\MetadataParsing\VideoCsvParser;
 use Biigle\Services\MetadataParsing\VolumeMetadata;
-use Symfony\Component\HttpFoundation\File\File;
 use TestCase;
 
 class ParserFactoryTest extends TestCase
 {
-    public function testGetParserForFileImage()
+    public function testHasImage()
     {
-        $file = new File(__DIR__."/../../../files/image-metadata.csv");
-        $parser = ParserFactory::getParserForFile($file, 'image');
-        $this->assertInstanceOf(ImageCsvParser::class, $parser);
+        $this->assertTrue(ParserFactory::has('image', ImageCsvParser::class));
     }
 
-    public function testGetParserForFileVideo()
+    public function testHasVideo()
     {
-        $file = new File(__DIR__."/../../../files/video-metadata.csv");
-        $parser = ParserFactory::getParserForFile($file, 'video');
-        $this->assertInstanceOf(VideoCsvParser::class, $parser);
+        $this->assertTrue(ParserFactory::has('video', VideoCsvParser::class));
     }
 
-    public function testGetParserForFileUnknownFile()
+    public function testHasUnknownType()
     {
-        $file = new File(__DIR__."/../../../files/test.mp4");
-        $parser = ParserFactory::getParserForFile($file, 'video');
-        $this->assertNull($parser);
+        $this->assertFalse(ParserFactory::has('unknown', ImageCsvParser::class));
     }
 
-    public function testGetParserForFileUnknownType()
+    public function testHasUnknownParser()
     {
-        $file = new File(__DIR__."/../../../files/image-metadata.csv");
-        $parser = ParserFactory::getParserForFile($file, 'test');
-        $this->assertNull($parser);
+        $this->assertFalse(ParserFactory::has('image', 'unknown'));
     }
 
     public function testExtend()
@@ -48,16 +39,6 @@ class ParserFactoryTest extends TestCase
         $this->expectException(\Exception::class);
         ParserFactory::extend(TestParser2::class, 'image');
     }
-
-    public function testGetKnownMimeTypes()
-    {
-        $types = ParserFactory::getKnownMimeTypes('image');
-        $this->assertContains('text/csv', $types);
-        $types = ParserFactory::getKnownMimeTypes('video');
-        $this->assertContains('text/csv', $types);
-        $types = ParserFactory::getKnownMimeTypes('unknown');
-        $this->assertEquals([], $types);
-    }
 }
 
 class TestParser extends MetadataParser
@@ -65,6 +46,11 @@ class TestParser extends MetadataParser
     public static function getKnownMimeTypes(): array
     {
         return [];
+    }
+
+    public static function getName(): string
+    {
+        return 'Test';
     }
 
     public function recognizesFile(): bool

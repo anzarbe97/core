@@ -37,9 +37,14 @@ class StoreVolumeMetadata extends FormRequest
     public function rules()
     {
         $type = $this->volume->isImageVolume() ? 'image' : 'video';
-        $mimeTypes = ParserFactory::getKnownMimeTypes($type);
+        $parserClass = $this->input('parser', false);
+        $mimeTypes = [];
+        if ($parserClass && ParserFactory::has($type, $parserClass)) {
+            $mimeTypes = $parserClass::getKnownMimeTypes();
+        }
 
         return [
+            'parser' => 'required',
             'file' => [
                 'required',
                 'file',
@@ -63,9 +68,16 @@ class StoreVolumeMetadata extends FormRequest
             }
 
             $type = $this->volume->isImageVolume() ? 'image' : 'video';
-            $parser = ParserFactory::getParserForFile($this->file('file'), $type);
-            if (is_null($parser)) {
-                $validator->errors()->add('file', 'Unknown metadata file format for this media type.');
+            $parserClass = $this->input('parser');
+
+            if (!ParserFactory::has($type, $parserClass)) {
+                $validator->errors()->add('parser', 'Unknown metadata parser for this media type.');
+                return;
+            }
+
+            $parser = new $parserClass($this->file('file'));
+            if (!$parser->recognizesFile()) {
+                $validator->errors()->add('file', 'Unknown metadata file format.');
                 return;
             }
 
